@@ -17,51 +17,13 @@
 // specific language governing permissions and limitations
 // under the License.
 
-/// An `EffectExecutor` manages the lifecycle of an `EffectHandler`.
-///
-/// The lifecyle works as follows:
-/// - When being created: it connects the `EffectHandler` to its output.
-/// - After being created:  it can send effects to the `EffectHandler` to be handled.
-/// - After being destroyed or disposed - it will disconnect the `EffectHandler` from its output.
-public class EffectExecutor<Effect, Event>: Disposable {
-    private let connection: _EffectHandlerConnection<Effect, Event>
-
-    public init(
-        effectHandler: EffectHandler<Effect, Event>,
-        output: @escaping Consumer<Event>
-    ) {
-        self.connection = effectHandler.connect(output)
-    }
-
-    /// Send an effect to the `EffectHandler` used when creating this class.
-    /// Return `true` if the `EffectHandler` could handle the effect.
-    public func execute(_ effect: Effect) -> Bool {
-        if let sideEffect = connection.sideEffectFor(effect) {
-            sideEffect()
-            return true
-        } else {
-            return false
-        }
-    }
-
-    /// Disconnect the `EffectHandler` associated with this class from its output.
-    /// After this function returns, it is no longer possible to call `execute`.
-    public func dispose() {
-        connection.dispose()
-    }
-
-    deinit {
-        connection.dispose()
-    }
-}
-
 
 typealias SideEffect = () -> Void
 
 // swiftlint:disable type_name
-/// An `_EffectHandlerConnection` describes the lifecycle of an effect handler. It can receive effects, and output events to its `output` `Consumer`.
-final class _EffectHandlerConnection<Effect, Event>: Disposable {
-    private let sideEffectForEffectWithOutput: (Effect, @escaping Consumer<Event>) -> SideEffect?
+/// A `SafeConnectable` describes the lifecycle of an effect handler. It can receive effects, and output events to its `output` `Consumer`.
+final class SafeConnection<Effect, Event>: Disposable {
+    private let executeEffectWithOutput: (Effect, Consumer<Event>) -> Bool
     // We cannot know if this `Consumer` is internally thread-safe. The thread-safety is therefore delegated to the
     // `output` instance function.
     private var unsafeOutput: Consumer<Event>?
@@ -71,24 +33,24 @@ final class _EffectHandlerConnection<Effect, Event>: Disposable {
     private let lock = Lock()
 
     init(
-        sideEffectForEffectWithOutput: @escaping (Effect, @escaping Consumer<Event>) -> SideEffect?,
+        handle: @escaping (Effect, Consumer<Event>) -> Bool,
         output unsafeOutput: @escaping Consumer<Event>,
-        disposable unsafeDispose: Disposable
+        stopHandling unsafeDispose: Disposable
     ) {
-        self.sideEffectForEffectWithOutput = sideEffectForEffectWithOutput
+        self.executeEffectWithOutput = handle
         self.unsafeOutput = unsafeOutput
         self.unsafeDispose = unsafeDispose
     }
 
-    /// Return an optional `SideEffect` for a given `Effect`.
+     /// Return an optional `SideEffect` for a given `Effect`.
     /// `SideEffect` is the effectful interpretation of the `Effect` data, and will be `nil` if the effect could not be handled.
-    /// 
+    ///
     /// Note: Execution of the `SideEffect` function should never be deferred. Executing a `SideEffect` after `dispose`
     /// has returned may cause runtime exceptions. `SideEffect` itself may internally be concurrent.
     ///
     /// - Parameter effect: the effect in question
-    public func sideEffectFor(_ effect: Effect) -> SideEffect? {
-        return sideEffectForEffectWithOutput(effect, output)
+    public func execute(_ effect: Effect) -> Bool {
+        return executeEffectWithOutput(effect, output)
     }
 
     /// Tear down the resources being consumed by this `_EffectHandlerConnection`.
