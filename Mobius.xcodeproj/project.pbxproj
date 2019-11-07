@@ -9,6 +9,8 @@
 /* Begin PBXBuildFile section */
 		02BED1BB21DD20D20093FB47 /* ConnectableContramap.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B9CE80421197FE000DB79A7 /* ConnectableContramap.swift */; };
 		02C4061D2373078400BD7ED8 /* SafeConnection.swift in Sources */ = {isa = PBXBuildFile; fileRef = 02C4061C2373078400BD7ED8 /* SafeConnection.swift */; };
+		02C40621237422EF00BD7ED8 /* EffectRouter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 02C40620237422EF00BD7ED8 /* EffectRouter.swift */; };
+		02C406242374260700BD7ED8 /* EffectRouterTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 02C40622237425E100BD7ED8 /* EffectRouterTests.swift */; };
 		02D0DDC02366F08300A1CE4C /* EffectHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 02D0DDBF2366F08300A1CE4C /* EffectHandler.swift */; };
 		02D0DDC52366F56C00A1CE4C /* EffectHandlerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 02D0DDC22366F49200A1CE4C /* EffectHandlerTests.swift */; };
 		02D0DDC723672E6400A1CE4C /* EffectHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 02D0DDBF2366F08300A1CE4C /* EffectHandler.swift */; };
@@ -262,6 +264,8 @@
 
 /* Begin PBXFileReference section */
 		02C4061C2373078400BD7ED8 /* SafeConnection.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SafeConnection.swift; sourceTree = "<group>"; };
+		02C40620237422EF00BD7ED8 /* EffectRouter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EffectRouter.swift; sourceTree = "<group>"; };
+		02C40622237425E100BD7ED8 /* EffectRouterTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EffectRouterTests.swift; sourceTree = "<group>"; };
 		02D0DDBF2366F08300A1CE4C /* EffectHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EffectHandler.swift; sourceTree = "<group>"; };
 		02D0DDC22366F49200A1CE4C /* EffectHandlerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EffectHandlerTests.swift; sourceTree = "<group>"; };
 		2D54D0EF21C11362002AAC19 /* AtomicBool.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AtomicBool.swift; sourceTree = "<group>"; };
@@ -486,6 +490,7 @@
 			isa = PBXGroup;
 			children = (
 				02D0DDBF2366F08300A1CE4C /* EffectHandler.swift */,
+				02C40620237422EF00BD7ED8 /* EffectRouter.swift */,
 				02C4061C2373078400BD7ED8 /* SafeConnection.swift */,
 			);
 			path = EffectHandlers;
@@ -495,6 +500,7 @@
 			isa = PBXGroup;
 			children = (
 				02D0DDC22366F49200A1CE4C /* EffectHandlerTests.swift */,
+				02C40622237425E100BD7ED8 /* EffectRouterTests.swift */,
 			);
 			path = EffectHandlers;
 			sourceTree = "<group>";
@@ -1295,6 +1301,7 @@
 				5BB2881C2099957D0043B530 /* ConnectablePublisher.swift in Sources */,
 				02D0DDC02366F08300A1CE4C /* EffectHandler.swift in Sources */,
 				5BB2881E209995810043B530 /* EventSource.swift in Sources */,
+				02C40621237422EF00BD7ED8 /* EffectRouter.swift in Sources */,
 				5B237EBA209C4F3C00764576 /* Connectable.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -1306,6 +1313,7 @@
 				5BB2887220999AD60043B530 /* EventProcessorTests.swift in Sources */,
 				5BB2886F20999AD60043B530 /* TestingUtil.swift in Sources */,
 				5BB2887320999AD60043B530 /* BrokenConnectionTests.swift in Sources */,
+				02C406242374260700BD7ED8 /* EffectRouterTests.swift in Sources */,
 				5BB2887520999AD60043B530 /* AnyEventSourceTests.swift in Sources */,
 				5B1F1047211037270067193C /* BlockingFunctionConnectableTests.swift in Sources */,
 				5BB2887C20999AD60043B530 /* LoggingUpdateTests.swift in Sources */,

@@ -225,21 +225,16 @@ private extension EffectHandler {
     /// We must therefore guarantee this property at the point where we connect our `EffectHandler` to the loop.
     var asLoopConnectable: AnyConnectable<Effect, Event> {
         return AnyConnectable { dispatch -> Connection<Effect> in
-            let connectable = SafeConnection(
+            let connection = SafeConnection(
                 handle: self.handle,
                 output: dispatch,
                 stopHandling: self.disposable
             )
             return Connection(
                 acceptClosure: { effect in
-                    let didExecuteEffect = connectable.execute(effect)
-                    if !didExecuteEffect {
-                        MobiusHooks.onError("No effect handler could be found for effect: \(effect)")
-                    }
+                    _ = connection.execute(effect)
                 },
-                disposeClosure: {
-                    connectable.dispose()
-                }
+                disposeClosure: connection.dispose
             )
         }
     }

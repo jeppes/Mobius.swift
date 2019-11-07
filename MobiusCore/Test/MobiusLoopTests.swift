@@ -279,10 +279,10 @@ class MobiusLoopTests: QuickSpec {
                 didReceiveEffect = false
                 loop = Mobius.loop(
                     update: { (_: Int, _: Int) in Next.dispatchEffects([1]) },
-                    effectHandler: EffectHandler(
-                        handlesEffect: 1,
+                    effectHandler: EffectHandler<Int, Int>(
                         handle: { effect, _ in
-                            didReceiveEffect = effect == 1
+                            didReceiveEffect = true
+                            return true
                         },
                         stopHandling: {
                             isDisposed = true
