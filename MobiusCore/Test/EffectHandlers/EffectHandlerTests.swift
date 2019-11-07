@@ -39,7 +39,7 @@ class EffectHandlerTests: QuickSpec {
     override func spec() {
         describe("Handling effects with EffectHandler") {
             var effectHandler: EffectHandler<Effect, Event>!
-            var executeEffect: ((Effect) -> Bool)!
+            var executeEffect: ((Effect) -> Void)!
             var receivedEvents: [Event]!
 
             beforeEach {
@@ -64,16 +64,6 @@ class EffectHandlerTests: QuickSpec {
                     _ = executeEffect(.effect2)
                     expect(receivedEvents).to(beEmpty())
                 }
-
-                it("returns true for effects which are executed") {
-                    let didExecute = executeEffect(.effect1)
-                    expect(didExecute).to(beTrue())
-                }
-
-                it("returns false for effects which are executed") {
-                    let didExecute = executeEffect(.effect2)
-                    expect(didExecute).to(beFalse())
-                }
             }
         }
         describe("Disposing EffectHandler") {
@@ -83,7 +73,7 @@ class EffectHandlerTests: QuickSpec {
             beforeEach {
                 isDisposed = false
                 effectHandler = EffectHandler(
-                    handle: { _, _ in true },
+                    handle: { _, _ in },
                     stopHandling: {
                         isDisposed = true
                     }
@@ -109,12 +99,8 @@ class EffectHandlerTests: QuickSpec {
     }
 }
 
-private func handleEffect(effect: Effect, output: Consumer<Event>) -> Bool {
-    switch effect {
-    case .effect1:
+private func handleEffect(effect: Effect, output: Consumer<Event>) {
+    if effect == .effect1 {
         output(.eventForEffect1)
-        return true
-    case .effect2:
-        return false
     }
 }

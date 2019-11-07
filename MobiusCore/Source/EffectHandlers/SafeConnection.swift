@@ -17,44 +17,36 @@
 // specific language governing permissions and limitations
 // under the License.
 
-
-typealias SideEffect = () -> Void
-
 // swiftlint:disable type_name
-/// A `SafeConnectable` describes the lifecycle of an effect handler. It can receive effects, and output events to its `output` `Consumer`.
-final class SafeConnection<Effect, Event>: Disposable {
-    private let executeEffectWithOutput: (Effect, Consumer<Event>) -> Bool
+/// `SafeConnection` is an object which can receive input, produce output, and be disposed to clean up resources.
+final class SafeConnection<Input, Output>: Disposable {
+    private let handleInputWithOutput: (Input, @escaping Consumer<Output>) -> Void
     // We cannot know if this `Consumer` is internally thread-safe. The thread-safety is therefore delegated to the
     // `output` instance function.
-    private var unsafeOutput: Consumer<Event>?
+    private var unsafeOutput: Consumer<Output>?
     // We cannot know if this `Disposable` is internally thread-safe. The thread-safety is therefore delegated to the
     // `dispose` instance function.
     private let unsafeDispose: Disposable
     private let lock = Lock()
 
     init(
-        handle: @escaping (Effect, Consumer<Event>) -> Bool,
-        output unsafeOutput: @escaping Consumer<Event>,
-        stopHandling unsafeDispose: Disposable
+        handleInput: @escaping (Input, @escaping Consumer<Output>) -> Void,
+        output unsafeOutput: @escaping Consumer<Output>,
+        dispose unsafeDispose: Disposable
     ) {
-        self.executeEffectWithOutput = handle
+        self.handleInputWithOutput = handleInput
         self.unsafeOutput = unsafeOutput
         self.unsafeDispose = unsafeDispose
     }
 
-     /// Return an optional `SideEffect` for a given `Effect`.
-    /// `SideEffect` is the effectful interpretation of the `Effect` data, and will be `nil` if the effect could not be handled.
-    ///
-    /// Note: Execution of the `SideEffect` function should never be deferred. Executing a `SideEffect` after `dispose`
-    /// has returned may cause runtime exceptions. `SideEffect` itself may internally be concurrent.
-    ///
-    /// - Parameter effect: the effect in question
-    public func execute(_ effect: Effect) -> Bool {
-        return executeEffectWithOutput(effect, output)
+    /// Handle input
+    /// - Parameter input: the input in question
+    public func handle(_ input: Input) {
+        return handleInputWithOutput(input, output)
     }
 
-    /// Tear down the resources being consumed by this `_EffectHandlerConnection`.
-    /// Any events sent by the `_EffectHandlerConnection` after this function returns will result in a runtime exception.
+    /// Tear down the resources being consumed by this object.
+    /// Note: Any attempts to send output after this function returns will result in a runtime exception.
     public func dispose() {
         self.lock.synchronized {
             unsafeDispose.dispose()
@@ -62,7 +54,7 @@ final class SafeConnection<Effect, Event>: Disposable {
         }
     }
 
-    private func output(event: Event) {
+    private func output(event: Output) {
         self.lock.synchronized {
             guard let unsafeOutput = unsafeOutput else {
                 MobiusHooks.onError("Attempted to dispatch event \(event), but the connection has already been disposed.")

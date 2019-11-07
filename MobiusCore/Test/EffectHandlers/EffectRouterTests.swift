@@ -33,7 +33,7 @@ class EffectRouterTests: QuickSpec {
             var disposed2: Bool!
             var effectHandler1: EffectHandler<Int, Int>!
             var effectHandler2: EffectHandler<Int, Int>!
-            var effectRouter: EffectRouter<Int, Int>!
+            var composedEffectHandler: EffectHandler<Int, Int>!
 
             beforeEach {
                 receivedEffect1 = nil
@@ -43,18 +43,20 @@ class EffectRouterTests: QuickSpec {
                 effectHandler1 = EffectHandler<Int, Int>(
                     handle: { effect, _ in
                         receivedEffect1 = effect
-                        return true
                     },
-                    stopHandling: { disposed1 = true }
+                    stopHandling: {
+                        disposed1 = true
+                    }
                 )
                 effectHandler2 = EffectHandler<Int, Int>(
                     handle: { effect, _ in
                         receivedEffect2 = effect
-                        return true
                     },
-                    stopHandling: { disposed2 = true }
+                    stopHandling: {
+                        disposed2 = true
+                    }
                 )
-                effectRouter = EffectRouter<Int, Int>()
+                composedEffectHandler = EffectRouter<Int, Int>()
                     .routeConstant(1, to: effectHandler1)
                     .routePayload(
                         { effect in effect == 2 ? 2 : nil },
@@ -62,26 +64,17 @@ class EffectRouterTests: QuickSpec {
                     )
                     .routeConstant(3, to: effectHandler1)
                     .routeConstant(3, to: effectHandler1)
+                    .asEffectHandler
             }
 
             it("should be able to route to a constant effect handler") {
-                _ = effectRouter.asEffectHandler.handle(1, { _ in })
+                _ = composedEffectHandler.handle(1, { _ in })
                 expect(receivedEffect1).to(equal(1))
             }
 
-            it("should return true if a constant route was found and handled") {
-                let didHandle = effectRouter.asEffectHandler.handle(1, { _ in })
-                expect(didHandle).to(beTrue())
-            }
-
             it("should be able to route to an effect handler with an extract function") {
-                _ = effectRouter.asEffectHandler.handle(2, { _ in })
+                _ = composedEffectHandler.handle(2, { _ in })
                 expect(receivedEffect2).to(equal(2))
-            }
-
-            it("should return true if an effect handler with a matching extract function was found") {
-                let didHandle = effectRouter.asEffectHandler.handle(2, { _ in })
-                expect(didHandle).to(beTrue())
             }
 
             it("should crash if more than 1 effect handler could be found") {
@@ -91,27 +84,24 @@ class EffectRouterTests: QuickSpec {
 
                 }
 
-                let didHandle = effectRouter.asEffectHandler.handle(3, { _ in })
+                composedEffectHandler.handle(3, { _ in })
 
                 expect(didCrash).to(beTrue())
-                expect(didHandle).to(beFalse())
             }
 
             it("should crash if no effect handlers could be found") {
                 var didCrash = false
                 MobiusHooks.setErrorHandler { _, _, _ in
                     didCrash = true
-
                 }
 
-                let didHandle = effectRouter.asEffectHandler.handle(4, { _ in })
+                composedEffectHandler.handle(4, { _ in })
 
                 expect(didCrash).to(beTrue())
-                expect(didHandle).to(beFalse())
             }
 
             it("should dispose all existing effect handlers when router is disposed") {
-                effectRouter.asEffectHandler.disposable.dispose()
+                composedEffectHandler.disposable.dispose()
                 expect(disposed1).to(beTrue())
                 expect(disposed2).to(beTrue())
             }

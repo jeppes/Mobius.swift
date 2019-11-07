@@ -282,7 +282,6 @@ class MobiusLoopTests: QuickSpec {
                     effectHandler: EffectHandler<Int, Int>(
                         handle: { effect, _ in
                             didReceiveEffect = true
-                            return true
                         },
                         stopHandling: {
                             isDisposed = true

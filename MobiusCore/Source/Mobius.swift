@@ -226,13 +226,13 @@ private extension EffectHandler {
     var asLoopConnectable: AnyConnectable<Effect, Event> {
         return AnyConnectable { dispatch -> Connection<Effect> in
             let connection = SafeConnection(
-                handle: self.handle,
+                handleInput: self.handle,
                 output: dispatch,
-                stopHandling: self.disposable
+                dispose: self.disposable
             )
             return Connection(
                 acceptClosure: { effect in
-                    _ = connection.execute(effect)
+                    _ = connection.handle(effect)
                 },
                 disposeClosure: connection.dispose
             )

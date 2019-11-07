@@ -18,25 +18,19 @@
 // under the License.
 
 public struct EffectHandler<Effect, Event> {
-    public let handle: (Effect, Consumer<Event>) -> Bool
+    public let handle: (Effect, @escaping Consumer<Event>) -> Void
     public let disposable: Disposable
 
-    init(handle: @escaping (Effect) -> ((@escaping Consumer<Event>) -> Disposable)?) {
-        fatalError()
-    }
-
     public init(
-        handle: @escaping (Effect, Consumer<Event>) -> Bool,
+        handle: @escaping (Effect, @escaping Consumer<Event>) -> Void,
         stopHandling disposable: Disposable
     ) {
         self.handle = handle
         self.disposable = disposable
     }
-}
 
-public extension EffectHandler {
-    init(
-        handle: @escaping (Effect, Consumer<Event>) -> Bool,
+    public init(
+        handle: @escaping (Effect, @escaping Consumer<Event>) -> Void,
         stopHandling: @escaping () -> Void = {}
     ) {
         self.init(handle: handle, stopHandling: AnonymousDisposable(disposer: stopHandling))
