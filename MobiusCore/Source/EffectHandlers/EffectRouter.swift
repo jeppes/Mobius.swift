@@ -37,7 +37,7 @@ public struct EffectRouter<Effect, Event> {
     }
 
     /// Collapse this `EffectRouter` into a single effect handler.
-    public var asEffectHandler: EffectHandler<Effect, Event> {
+    public var asEffectHandler: AnyConnectable<Effect, Event> {
         return compose(routes: routes)
     }
 
@@ -75,19 +75,11 @@ public extension EffectRouter where Effect: Equatable {
     func routeConstant(
         _ handledEffect: Effect,
         to handler: EffectHandler<Effect, Event>
-    ) -> EffectRouter {
-        let route = Route<Effect, Event>(
-            handle: { effect, dispatch in
-                if effect == handledEffect {
-                    handler.handle(effect, dispatch)
-                    return true
-                } else {
-                    return false
-                }
-            },
-            disposable: handler.disposable
+    ) -> EffectRouter<Effect, Event> {
+        routePayload(
+            { effect in handledEffect == effect ? effect : nil },
+            to: handler
         )
-        return EffectRouter(routes: routes + [route])
     }
 }
 
@@ -99,24 +91,38 @@ private struct Route<Effect, Event> {
 
 private func compose<Effect, Event>(
     routes: [Route<Effect, Event>]
-) -> EffectHandler<Effect, Event> {
-    return EffectHandler(
-        handle: { effect, dispatch in
-            var handledCount = 0
-            for route in routes {
-                if route.handle(effect, dispatch) {
-                    handledCount += 1
+) -> AnyConnectable<Effect, Event> {
+    return AnyConnectable { dispatch in
+        let routeConnections = routes
+            .map { route in toSafeConnection(route: route, dispatch: dispatch) }
+
+        return Connection(
+            acceptClosure: { effect in
+                let handledCount = routeConnections
+                    .map { $0.handle(effect) }
+                    .filter { $0 }
+                    .count
+
+                if handledCount != 1 {
+                    MobiusHooks.onError("Error: \(handledCount) EffectHandlers could be found for effect: \(handledCount). Exactly 1 is required.")
+                }
+            },
+            disposeClosure: {
+                routeConnections.forEach { route in
+                    route.dispose()
                 }
             }
+        )
+    }
+}
 
-            if handledCount != 1 {
-                MobiusHooks.onError("Error: \(handledCount) EffectHandlers could be found for effect: \(handledCount). Exactly 1 is required.")
-            }
-        },
-        stopHandling: {
-            routes.forEach { route in
-                route.disposable.dispose()
-            }
-        }
+private func toSafeConnection<Effect, Event>(
+    route: Route<Effect, Event>,
+    dispatch: @escaping Consumer<Event>
+) -> RouteConnection<Effect, Event> {
+    return RouteConnection(
+        handleInput: route.handle,
+        output: dispatch,
+        dispose: route.disposable
     )
 }

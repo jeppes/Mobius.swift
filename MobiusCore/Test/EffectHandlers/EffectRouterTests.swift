@@ -23,58 +23,69 @@ import Quick
 
 // swiftlint:disable type_body_length file_length
 
+private enum Effect {
+    case effect1
+    case effect2
+    case multipleHandlersForThisEffect
+    case noHandlersForThisEffect
+}
+
+private enum Event {
+    case eventForEffect1
+    case eventForEffect2
+}
+
 class EffectRouterTests: QuickSpec {
     // swiftlint:disable function_body_length
     override func spec() {
         context("Routing to effect handlers with an EffectRouter") {
-            var receivedEffect1: Int?
-            var receivedEffect2: Int?
+            var receivedEvents: [Event]!
             var disposed1: Bool!
             var disposed2: Bool!
-            var effectHandler1: EffectHandler<Int, Int>!
-            var effectHandler2: EffectHandler<Int, Int>!
-            var composedEffectHandler: EffectHandler<Int, Int>!
+            var composedEffectHandler: Connection<Effect>!
 
             beforeEach {
-                receivedEffect1 = nil
-                receivedEffect2 = nil
+                receivedEvents = []
                 disposed1 = false
                 disposed2 = false
-                effectHandler1 = EffectHandler<Int, Int>(
-                    handle: { effect, _ in
-                        receivedEffect1 = effect
+                let effectHandler1 = EffectHandler<Effect, Event>(
+                    handle: { effect, dispatch in
+                        dispatch(.eventForEffect1)
                     },
                     stopHandling: {
                         disposed1 = true
                     }
                 )
-                effectHandler2 = EffectHandler<Int, Int>(
-                    handle: { effect, _ in
-                        receivedEffect2 = effect
+                let extractEffect2: (Effect) -> Effect? = {
+                    return $0 == .effect2 ? .effect2 : nil
+                }
+                let effectHandler2 = EffectHandler<Effect, Event>(
+                    handle: { effect, dispatch in
+                        dispatch(.eventForEffect2)
                     },
                     stopHandling: {
                         disposed2 = true
                     }
                 )
-                composedEffectHandler = EffectRouter<Int, Int>()
-                    .routeConstant(1, to: effectHandler1)
-                    .routePayload(
-                        { effect in effect == 2 ? 2 : nil },
-                        to: effectHandler2
-                    )
-                    .routeConstant(3, to: effectHandler1)
-                    .routeConstant(3, to: effectHandler1)
+                composedEffectHandler = EffectRouter<Effect, Event>()
+                    .routeConstant(.effect1, to: effectHandler1)
+                    .routePayload(extractEffect2, to: effectHandler2)
+                    .routeConstant(.multipleHandlersForThisEffect, to: effectHandler1)
+                    .routeConstant(.multipleHandlersForThisEffect, to: effectHandler1)
                     .asEffectHandler
+                    .connect { event in
+                        receivedEvents.append(event)
+                    }
             }
 
             it("should be able to route to a constant effect handler") {
-                _ = composedEffectHandler.handle(1, { _ in })
-                expect(receivedEffect1).to(equal(1))
+                _ = composedEffectHandler.accept(.effect1)
+                expect(receivedEvents).to(equal([.eventForEffect1]))
             }
 
             it("should be able to route to an effect handler with an extract function") {
-                _ = composedEffectHandler.handle(2, { _ in })
-                expect(receivedEffect2).to(equal(2))
+                _ = composedEffectHandler.accept(.effect2)
+                expect(receivedEvents).to(equal([.eventForEffect2]))
             }
 
             it("should crash if more than 1 effect handler could be found") {
@@ -84,7 +95,7 @@ class EffectRouterTests: QuickSpec {
 
                 }
 
-                composedEffectHandler.handle(3, { _ in })
+                composedEffectHandler.accept(.multipleHandlersForThisEffect)
 
                 expect(didCrash).to(beTrue())
             }
@@ -95,16 +106,18 @@ class EffectRouterTests: QuickSpec {
                     didCrash = true
                 }
 
-                composedEffectHandler.handle(4, { _ in })
+                composedEffectHandler.accept(.noHandlersForThisEffect)
 
                 expect(didCrash).to(beTrue())
             }
 
             it("should dispose all existing effect handlers when router is disposed") {
-                composedEffectHandler.disposable.dispose()
+                composedEffectHandler.dispose()
                 expect(disposed1).to(beTrue())
                 expect(disposed2).to(beTrue())
             }
         }
     }
 }
+
+

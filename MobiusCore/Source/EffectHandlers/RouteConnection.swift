@@ -18,9 +18,9 @@
 // under the License.
 
 // swiftlint:disable type_name
-/// `SafeConnection` is an object which can receive input, produce output, and be disposed to clean up resources.
-final class SafeConnection<Input, Output>: Disposable {
-    private let handleInputWithOutput: (Input, @escaping Consumer<Output>) -> Void
+/// `RouteConnection` is an object which can receive input, produce output, and be disposed to clean up resources.
+final class RouteConnection<Input, Output>: Disposable {
+    private let handleInputWithOutput: (Input, @escaping Consumer<Output>) -> Bool
     // We cannot know if this `Consumer` is internally thread-safe. The thread-safety is therefore delegated to the
     // `output` instance function.
     private var unsafeOutput: Consumer<Output>?
@@ -30,7 +30,7 @@ final class SafeConnection<Input, Output>: Disposable {
     private let lock = Lock()
 
     init(
-        handleInput: @escaping (Input, @escaping Consumer<Output>) -> Void,
+        handleInput: @escaping (Input, @escaping Consumer<Output>) -> Bool,
         output unsafeOutput: @escaping Consumer<Output>,
         dispose unsafeDispose: Disposable
     ) {
@@ -41,7 +41,7 @@ final class SafeConnection<Input, Output>: Disposable {
 
     /// Handle input
     /// - Parameter input: the input in question
-    public func handle(_ input: Input) {
+    public func handle(_ input: Input) -> Bool {
         return handleInputWithOutput(input, output)
     }
 

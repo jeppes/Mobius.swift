@@ -37,32 +37,6 @@ public extension Mobius {
     ///
     /// - Parameters:
     ///   - update: the `Update` function of the loop
-    ///   - effectHandler: the `EffectHandler` used to handle effects by the loop
-    /// - Returns: a `Builder` instance that you can further configure before starting the loop
-    static func loop<Model, Event, Effect>(
-        update: @escaping Update<Model, Event, Effect>,
-        effectHandler: EffectHandler<Effect, Event>
-    ) -> Builder<Model, Event, Effect> {
-        return Builder(
-            update: update,
-            effectHandler: effectHandler.asLoopConnectable,
-            initiator: { First(model: $0) },
-            eventSource: AnyEventSource({ _ in AnonymousDisposable(disposer: {}) }),
-            eventQueue: DispatchQueue(label: "event processor"),
-            effectQueue: DispatchQueue(label: "effect processor", attributes: .concurrent),
-            logger: AnyMobiusLogger(NoopLogger())
-        )
-    }
-
-    /// Create a `Builder` to help you configure a `MobiusLoop ` before starting it.
-    ///
-    /// The builder is immutable. When setting various properties, a new instance of a builder will be returned.
-    /// It is therefore recommended to chain the loop configuration functions
-    ///
-    /// Once done configuring the loop you can start the loop using `start(from:)`.
-    ///
-    /// - Parameters:
-    ///   - update: the `Update` function of the loop
     ///   - effectHandler: an instance conforming to the `ConnectableProtocol`. Will be used to handle effects by the loop
     /// - Returns: a `Builder` instance that you can further configure before starting the loop
     static func loop<Model, Event, Effect, C: Connectable>(update: @escaping Update<Model, Event, Effect>, effectHandler: C) -> Builder<Model, Event, Effect> where C.InputType == Effect, C.OutputType == Event {
@@ -216,26 +190,5 @@ class LoggingUpdate<Model, Event, Effect> {
         didUpdate(model, event, result)
 
         return result
-    }
-}
-
-private extension EffectHandler {
-    /// When using an `EffectHandler` to handle effects in a Mobius loop, at least one `EffectHandler` must respond to each event.
-    /// We cannot guarantee this in an `EffectHandler` or even in a composition of `EffectHandler`s, since we do not know how they will be nested.
-    /// We must therefore guarantee this property at the point where we connect our `EffectHandler` to the loop.
-    var asLoopConnectable: AnyConnectable<Effect, Event> {
-        return AnyConnectable { dispatch -> Connection<Effect> in
-            let connection = SafeConnection(
-                handleInput: self.handle,
-                output: dispatch,
-                dispose: self.disposable
-            )
-            return Connection(
-                acceptClosure: { effect in
-                    _ = connection.handle(effect)
-                },
-                disposeClosure: connection.dispose
-            )
-        }
     }
 }
