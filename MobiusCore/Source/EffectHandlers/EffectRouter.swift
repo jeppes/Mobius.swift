@@ -17,13 +17,11 @@
 // specific language governing permissions and limitations
 // under the License.
 
-import Foundation
-
 
 /// `EffectRouter` is used to compose a group of `EffectHandler`s into a single `EffectHandler`.
 ///
-/// `asEffectHandler` can be called to collapse all the routes defined in `routePayload` and `routeConstant` into a single `EffectHandler`.
-/// This `EffectHandler` must have __exactly 1__ route for every `Effect` it receives. Handling an effect is more than 1 route, or in 0 routes, will result in
+/// `asEffectHandler` can be called to collapse all the routes defined in `routePayload` and `routeConstant` into a single `Connectable`.
+/// This `Connectable` must have __exactly 1__ route for every `Effect` it receives. Handling an effect is more than 1 route, or in 0 routes, will result in
 /// a runtime error.
 public struct EffectRouter<Effect, Event> {
     private let routes: [Route<Effect, Event>]
@@ -36,8 +34,8 @@ public struct EffectRouter<Effect, Event> {
         self.routes = routes
     }
 
-    /// Collapse this `EffectRouter` into a single effect handler.
-    public var asEffectHandler: AnyConnectable<Effect, Event> {
+    /// Collapse this `EffectRouter` into a single connectable.
+    public var asConnectable: AnyConnectable<Effect, Event> {
         return compose(routes: routes)
     }
 
@@ -49,7 +47,7 @@ public struct EffectRouter<Effect, Event> {
     /// - Parameter handler: The effect handler which should be used if `extractPayload` returns a non-`nil` value.
     public func routePayload<Payload>(
         _ extractPayload: @escaping (Effect) -> Payload?,
-        to handler: EffectHandler<Payload, Event>
+        toHandler handler: EffectHandler<Payload, Event>
     ) -> EffectRouter<Effect, Event> {
         let route = Route<Effect, Event>(
             handle: { effect, dispatch in
@@ -65,24 +63,6 @@ public struct EffectRouter<Effect, Event> {
         return EffectRouter(routes: routes + [route])
     }
 }
-
-public extension EffectRouter where Effect: Equatable {
-
-    /// Add a route for `handler`. This route will be taken if the effect in question is equal to `handledEffect`
-    ///
-    /// - Parameter handledEffect: The effect handled by `handler`.
-    /// - Parameter handler: The handler which should handle the `handledEffect`.
-    func routeConstant(
-        _ handledEffect: Effect,
-        to handler: EffectHandler<Effect, Event>
-    ) -> EffectRouter<Effect, Event> {
-        routePayload(
-            { effect in handledEffect == effect ? effect : nil },
-            to: handler
-        )
-    }
-}
-
 
 private struct Route<Effect, Event> {
     let handle: (Effect, @escaping Consumer<Event>) -> Bool

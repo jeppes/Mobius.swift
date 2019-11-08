@@ -286,8 +286,8 @@ class MobiusLoopTests: QuickSpec {
                     }
                 )
                 let effectConnectable = EffectRouter<Int, Int>()
-                    .routePayload({ effect in effect }, to: effectHandler)
-                    .asEffectHandler
+                    .routePayload({ effect in effect }, toHandler: effectHandler)
+                    .asConnectable
                 let update = { (_: Int, _: Int) -> Next<Int, Int> in Next.dispatchEffects([1]) }
                 loop = Mobius
                     .loop(update: update, effectHandler: effectConnectable)

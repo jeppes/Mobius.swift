@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		02B33E6923756371002DBCF5 /* EffectRouterRoutes.swift in Sources */ = {isa = PBXBuildFile; fileRef = 02B33E6823756371002DBCF5 /* EffectRouterRoutes.swift */; };
 		02BED1BB21DD20D20093FB47 /* ConnectableContramap.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B9CE80421197FE000DB79A7 /* ConnectableContramap.swift */; };
 		02C4061D2373078400BD7ED8 /* RouteConnection.swift in Sources */ = {isa = PBXBuildFile; fileRef = 02C4061C2373078400BD7ED8 /* RouteConnection.swift */; };
 		02C40621237422EF00BD7ED8 /* EffectRouter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 02C40620237422EF00BD7ED8 /* EffectRouter.swift */; };
@@ -263,6 +264,7 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		02B33E6823756371002DBCF5 /* EffectRouterRoutes.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EffectRouterRoutes.swift; sourceTree = "<group>"; };
 		02C4061C2373078400BD7ED8 /* RouteConnection.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RouteConnection.swift; sourceTree = "<group>"; };
 		02C40620237422EF00BD7ED8 /* EffectRouter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EffectRouter.swift; sourceTree = "<group>"; };
 		02C40622237425E100BD7ED8 /* EffectRouterTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EffectRouterTests.swift; sourceTree = "<group>"; };
@@ -491,6 +493,7 @@
 			children = (
 				02D0DDBF2366F08300A1CE4C /* EffectHandler.swift */,
 				02C40620237422EF00BD7ED8 /* EffectRouter.swift */,
+				02B33E6823756371002DBCF5 /* EffectRouterRoutes.swift */,
 				02C4061C2373078400BD7ED8 /* RouteConnection.swift */,
 			);
 			path = EffectHandlers;
@@ -1275,6 +1278,7 @@
 				2D54D0F021C11362002AAC19 /* AtomicBool.swift in Sources */,
 				5BB28821209995810043B530 /* Mobius.swift in Sources */,
 				5B1F103A210F5E9A0067193C /* BlockingFunctionConnectable.swift in Sources */,
+				02B33E6923756371002DBCF5 /* EffectRouterRoutes.swift in Sources */,
 				5BB2882B209995860043B530 /* AnonymousDisposable.swift in Sources */,
 				5B4A369A21107D2600279C7D /* AnyEventSource.swift in Sources */,
 				5BB2881A2099957D0043B530 /* MobiusLoop.swift in Sources */,

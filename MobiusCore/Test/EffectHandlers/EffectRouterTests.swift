@@ -68,11 +68,11 @@ class EffectRouterTests: QuickSpec {
                     }
                 )
                 composedEffectHandler = EffectRouter<Effect, Event>()
-                    .routeConstant(.effect1, to: effectHandler1)
-                    .routePayload(extractEffect2, to: effectHandler2)
-                    .routeConstant(.multipleHandlersForThisEffect, to: effectHandler1)
-                    .routeConstant(.multipleHandlersForThisEffect, to: effectHandler1)
-                    .asEffectHandler
+                    .routeConstant(.effect1, toHandler: effectHandler1)
+                    .routePayload(extractEffect2, toHandler: effectHandler2)
+                    .routeConstant(.multipleHandlersForThisEffect, toHandler: effectHandler1)
+                    .routeConstant(.multipleHandlersForThisEffect, toHandler: effectHandler1)
+                    .asConnectable
                     .connect { event in
                         receivedEvents.append(event)
                     }
